@@ -23,9 +23,9 @@ const train: FastifyPluginAsync = async function (fastify, _opts) {
         const collection = fastify.mongo.client
           .db("research")
           .collection("embeddings");
-        const files = await fs.readdir("./sample_papers");
+        const files = await fs.readdir("./papers");
         for (const file of files) {
-          const document = new PDFLoader(`./sample_papers/${file}`);
+          const document = new PDFLoader(`./papers/${file}`);
           const load = await document.load();
           const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 100,
