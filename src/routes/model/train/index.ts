@@ -24,11 +24,11 @@ const train: FastifyPluginAsync = async function (fastify, _opts) {
           .db("research")
           .collection("embeddings");
         const files = await fs.readdir("./sample_papers");
-        files.forEach(async (file) => {
+        for (const file of files) {
           const document = new PDFLoader(`./sample_papers/${file}`);
           const load = await document.load();
           const textSplitter = new RecursiveCharacterTextSplitter({
-            chunkSize: 200,
+            chunkSize: 100,
             chunkOverlap: 20,
           });
           const paper = await textSplitter.splitDocuments(load);
@@ -44,7 +44,7 @@ const train: FastifyPluginAsync = async function (fastify, _opts) {
               embeddingKey: "embeddings",
             }
           );
-        });
+        }
         return { message: "embeddings completed!!" };
       } catch (error) {
         fastify.log.error(error);
