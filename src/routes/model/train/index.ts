@@ -7,6 +7,7 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import z from "zod";
 import { config } from "../../../config/env";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
+
 const train: FastifyPluginAsync = async function (fastify, _opts) {
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: "GET",

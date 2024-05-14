@@ -55,7 +55,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
         });
 
         const prompt = PromptTemplate.fromTemplate(`
-        You are a Research Assistant tasked with providing detailed summaries of academic articles related to the given context. Please provide a summary of the most relevant articles, including the article title, authors, and year of publication if available. Format your response in markdown.
+        You are a Research Assistant tasked with providing detailed summaries of academic articles related to the given context. Please provide a summary of the most relevant articles, including the article title, authors, and year of publication if available. Format your response in markdown. And if you do not have an answer say you don't.
           Context: {context}
         Question: {question}`);
 
