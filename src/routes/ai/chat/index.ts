@@ -29,9 +29,12 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
     handler: async (request) => {
       const { message } = request.body;
       try {
+        // Connect to the MongoDB database and collection
         const collection = fastify.mongo.client
           .db("research")
           .collection("embeddings");
+
+        // Create a vector store for searching embeddings
         const vectorStore = new MongoDBAtlasVectorSearch(
           new OpenAIEmbeddings({
             modelName: "text-embedding-ada-002",
@@ -46,6 +49,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
           }
         );
 
+        // Create a retriever using the vector store
         const retriver = vectorStore.asRetriever({
           searchType: "mmr",
           searchKwargs: {
@@ -54,15 +58,18 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
           },
         });
 
+        // Create a prompt template for generating the query
         const prompt = PromptTemplate.fromTemplate(`
         You are a Research Assistant tasked with providing detailed summaries of academic articles related to the given context. Please provide a summary of the most relevant articles, including the article title, authors, and year of publication if available. Format your response in markdown. And if you do not have an answer say you don't.
           Context: {context}
         Question: {question}`);
 
+        // Create a chat model for generating the answer
         const model = new ChatOpenAI({
           apiKey: config.OPEN_API_KEY,
         });
 
+        // Create a runnable sequence for executing the pipeline
         const chain = RunnableSequence.from([
           {
             context: retriver.pipe(formatDocumentsAsString),
@@ -73,6 +80,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
           new StringOutputParser(),
         ]);
 
+        // Invoke the pipeline with the user's message
         const retriverOutput = await chain.invoke(message);
         return { answer: retriverOutput };
       } catch (error) {
@@ -81,5 +89,4 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
     },
   });
 };
-
 export default chat;
