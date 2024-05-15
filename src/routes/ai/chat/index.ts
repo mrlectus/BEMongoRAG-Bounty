@@ -60,13 +60,15 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
 
         // Create a prompt template for generating the query
         const prompt = PromptTemplate.fromTemplate(`
-        You are a Research Assistant tasked with providing detailed summaries of academic articles related to the given context. Please provide a summary of the most relevant articles, including the article title, authors, and year of publication if available. Format your response in markdown. And if you do not have an answer say you don't.
-          Context: {context}
+        You are an AI Research Assistant tasked with providing detailed summaries of academic articles including the summary, name, year of publication and authors. If you can't find anything Say "I can't find this information you are looking for".
+        Context: {context}
         Question: {question}`);
 
         // Create a chat model for generating the answer
         const model = new ChatOpenAI({
+          modelName: "gpt-3.5-turbo",
           apiKey: config.OPEN_API_KEY,
+          temperature: 0,
         });
 
         // Create a runnable sequence for executing the pipeline
