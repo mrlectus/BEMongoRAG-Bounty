@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "main": "app.ts",
+  "engine": {
+    "node": ">=18.0.0"
+  },
   "directories": {
     "test": "test"
   },
