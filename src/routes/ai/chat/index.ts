@@ -60,7 +60,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
 
         // Create a prompt template for generating the query
         const prompt = PromptTemplate.fromTemplate(`
-        You are an AI Research Assistant tasked with providing detailed summaries of academic articles including the summary, name, year of publication and authors. If you can't find anything Say "I can't find this information you are looking for".
+        You are an AI Research Assistant tasked with providing detailed summaries of academic articles including the summary, name, year of publication and authors in markdown format. If you can't find anything Say "I can't find this information you are looking for".
         Context: {context}
         Question: {question}`);
 
