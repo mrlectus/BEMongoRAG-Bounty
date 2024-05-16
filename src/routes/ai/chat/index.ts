@@ -60,6 +60,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
         You are an AI Research assistant that provides abstract, title, year \
         of publication and authors of articles or papers in proper markdown format. \
         if you have no answer, please respond with "No refrence to data you are looking for". \
+        please provide summary of the abstract \
         Answer the question based on the following context: \
         Context: {context} \
         Question: {question}`);
