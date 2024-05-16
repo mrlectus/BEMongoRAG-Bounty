@@ -11,6 +11,7 @@ import {
 } from "@langchain/core/runnables";
 import { formatDocumentsAsString } from "langchain/util/document";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { sleep } from "langchain/util/time";
 
 const chat: FastifyPluginAsync = async function (fastify, _opts) {
   fastify.withTypeProvider<ZodTypeProvider>().route({
@@ -27,7 +28,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
       }),
     },
     handler: async (request) => {
-      const { message } = request.body;
+      const { message: question } = request.body;
       try {
         // Connect to the MongoDB database and collection
         const collection = fastify.mongo.client
@@ -50,18 +51,17 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
         );
 
         // Create a retriever using the vector store
-        const retriver = vectorStore.asRetriever({
-          searchType: "mmr",
-          searchKwargs: {
-            fetchK: 50,
-            lambda: 0.1,
-          },
+        const retriever = vectorStore.asRetriever({
+          searchType: "similarity",
         });
 
         // Create a prompt template for generating the query
         const prompt = PromptTemplate.fromTemplate(`
-        You are an AI Research Assistant tasked with providing detailed summaries of academic articles including the summary, name, year of publication and authors in markdown format. If you can't find anything Say "I can't find this information you are looking for".
-        Context: {context}
+        You are an AI Research assistant that provides abstract, title, year \
+        of publication and authors of articles or papers in proper markdown format. \
+        if you have no answer, please respond with "No refrence to data you are looking for". \
+        Answer the question based on the following context: \
+        Context: {context} \
         Question: {question}`);
 
         // Create a chat model for generating the answer
@@ -74,7 +74,7 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
         // Create a runnable sequence for executing the pipeline
         const chain = RunnableSequence.from([
           {
-            context: retriver.pipe(formatDocumentsAsString),
+            context: retriever.pipe(formatDocumentsAsString),
             question: new RunnablePassthrough(),
           },
           prompt,
@@ -82,8 +82,19 @@ const chat: FastifyPluginAsync = async function (fastify, _opts) {
           new StringOutputParser(),
         ]);
 
+        await sleep(3000);
         // Invoke the pipeline with the user's message
-        const retriverOutput = await chain.invoke(message);
+        const retriverOutput = await chain.invoke(question);
+        const retrievedResults = await retriever._getRelevantDocuments(
+          question
+        );
+        const documents = retrievedResults.map((document) => ({
+          pageContent: document.pageContent,
+          pageNumber: document.metadata.loc.pageNumber,
+        }));
+
+        fastify.log.info(JSON.stringify(documents));
+
         return { answer: retriverOutput };
       } catch (error) {
         fastify.log.error(error);
